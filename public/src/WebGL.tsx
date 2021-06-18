@@ -1,8 +1,8 @@
-import React from "react"
+import React, {useEffect} from "react"
 import * as THREE from "three";
 
-class WebGL extends React.Component {
-  componentDidMount() {
+const WebGL = (props) => {
+  useEffect(() => {
     // === THREE.JS CODE START ===
     var scene = new THREE.Scene();
     var camera = new THREE.PerspectiveCamera( 75, window.innerWidth/window.innerHeight, 0.1, 1000 );
@@ -24,12 +24,10 @@ class WebGL extends React.Component {
     // === THREE.JS EXAMPLE CODE END ===
 
     //=======================================================================================
-  }
-  render() {
-    return (
-      <></>
-    )
-  }
+  }, [])
+  return (
+    <></>
+  )
 }
 
 export default WebGL
