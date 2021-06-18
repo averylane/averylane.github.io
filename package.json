@@ -5,8 +5,8 @@
   "description": "",
   "main": "index.html",
   "scripts": {
-    "dev": "parcel serve src/index.html",
-    "build": "parcel src/index.html"
+    "dev": "parcel serve public/index.html",
+    "build": "parcel public/index.html"
   },
   "repository": {
     "type": "git",
