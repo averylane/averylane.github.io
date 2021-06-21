@@ -4,10 +4,36 @@ html {
   padding: 0;
 }
 
-.webgl
+body {
+  color: white;
+
+  #app {
+    section {
+      height: calc(50vh + 28px);
+
+      .content {
+        text-align: center;
+        margin-top: calc(50vh - 28px);
+      }
+    }
+
+    // LAST SECTION
+    .closing {
+      height: calc(50vh + 100px);
+
+      .content {
+        margin-top: calc(50vh - 100px);
+      }
+    }
+  }
+}
+
+
+canvas
 {
     position: fixed;
     top: 0;
     left: 0;
     outline: none;
+    z-index: -1;
 }
