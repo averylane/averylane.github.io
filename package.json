@@ -25,11 +25,11 @@
     "three": "^0.129.0"
   },
   "devDependencies": {
-    "@parcel/transformer-sass": "^2.0.0-beta.2",
-    "@types/three": "^0.129.1",
+    "@parcel/transformer-sass": "^2.0.0-nightly.731",
     "@types/react": "^17.0.11",
     "@types/react-dom": "^17.0.8",
-    "parcel": "^2.0.0-beta.2",
+    "@types/three": "^0.129.1",
+    "parcel": "^2.0.0-nightly.729",
     "prettier": "^2.3.1"
   }
 }
