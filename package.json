@@ -1,0 +1,35 @@
+{
+  "name": "averylane.github.io",
+  "version": "1.0.0",
+  "private": true,
+  "description": "",
+  "main": "index.html",
+  "scripts": {
+    "dev": "parcel serve src/index.html",
+    "build": "parcel src/index.html"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/averylane/averylane.github.io.git"
+  },
+  "bugs": {
+    "url": "https://github.com/averylane/averylane.github.io/issues"
+  },
+  "homepage": "https://github.com/averylane/averylane.github.io#readme",
+  "dependencies": {
+    "@tweenjs/tween.js": "^18.6.4",
+    "dat.gui": "^0.7.7",
+    "gsap": "^3.6.1",
+    "react": "^17.0.2",
+    "react-dom": "^17.0.2",
+    "three": "^0.129.0"
+  },
+  "devDependencies": {
+    "@parcel/transformer-sass": "^2.0.0-nightly.731",
+    "@types/react": "^17.0.11",
+    "@types/react-dom": "^17.0.8",
+    "@types/three": "^0.129.1",
+    "parcel": "^2.0.0-nightly.729",
+    "prettier": "^2.3.1"
+  }
+}
