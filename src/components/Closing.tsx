@@ -1,8 +1,20 @@
-import React from 'react'
+import React, { useEffect, useState } from 'react'
+import useElementOnScreen from '../helpers/useElementOnScreen'
 
 export const Closing = (props) => {
+
+  const [containerRef, isVisible] = useElementOnScreen({
+    root: null,
+    rootMargin: "0px",
+    threshold: props.threshold
+  })
+
+  useEffect(() =>{
+    if (isVisible) props.updateCurrent('clos')
+  }, [isVisible])
+
   return (
-    <section className="closing">
+    <section className="closing" ref={containerRef}>
       <div className="content">
         <h1>Come work with us</h1>
         <h3>We do AR/VR/App interactive experiences.</h3>

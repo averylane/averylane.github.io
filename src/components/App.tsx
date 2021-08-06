@@ -1,4 +1,4 @@
-import React from 'react'
+import React, { useEffect, useState } from 'react'
 import WebGL from './WebGL'
 import Hero from './Hero'
 import Animation from './Animation'
@@ -9,16 +9,26 @@ import A11y from './A11y'
 import Closing from './Closing'
 
 export const App = (props) => {
+
+  const threshold = 0.7
+
+  const [current, updateCurrent] = useState('hero')
+
+  useEffect(() => {
+    // console.log(current)
+    window.current = current
+  }, [current])
+
   return (
     <>
-      <WebGL />
-      <Hero />
-      <Animation />
-      <ThreeSixty />
-      <Filtering />
-      <AugReality />
-      <A11y />
-      <Closing />
+      <WebGL current={current}/>
+      <Hero updateCurrent={updateCurrent} threshold={threshold}/>
+      <Animation updateCurrent={updateCurrent} threshold={threshold}/>
+      <ThreeSixty updateCurrent={updateCurrent} threshold={threshold}/>
+      <Filtering updateCurrent={updateCurrent} threshold={threshold}/>
+      <AugReality updateCurrent={updateCurrent} threshold={threshold}/>
+      <A11y updateCurrent={updateCurrent} threshold={threshold}/>
+      <Closing updateCurrent={updateCurrent} threshold={threshold}/>
     </>
   )
 }

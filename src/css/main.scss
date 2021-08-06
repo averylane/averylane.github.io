@@ -9,20 +9,20 @@ body {
 
   #app {
     section {
-      height: calc(50vh + 28px);
+      height: calc(50vh + 14px);
 
       .content {
         text-align: center;
-        margin-top: calc(50vh - 28px);
+        margin-top: calc(50vh - 14px);
       }
     }
 
     // LAST SECTION
     .closing {
-      height: calc(50vh + 100px);
+      height: calc(50vh + 140px/2);
 
       .content {
-        margin-top: calc(50vh - 100px);
+        margin-top: calc(50vh - 140px/2);
       }
     }
   }
