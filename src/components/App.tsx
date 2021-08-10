@@ -1,5 +1,4 @@
 import React, { useEffect, useState } from 'react'
-import WebGL from './WebGL'
 import Hero from './Hero'
 import Animation from './Animation'
 import ThreeSixty from './ThreeSixty'
@@ -21,7 +20,6 @@ export const App = (props) => {
 
   return (
     <>
-      <WebGL current={current}/>
       <Hero updateCurrent={updateCurrent} threshold={threshold}/>
       <Animation updateCurrent={updateCurrent} threshold={threshold}/>
       <ThreeSixty updateCurrent={updateCurrent} threshold={threshold}/>
