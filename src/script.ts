@@ -17,8 +17,8 @@ ReactDOM.render(<App />, document.getElementById("app"))
 // TEXTURES
 // ===========================================================
 const textureLoader = new THREE.TextureLoader()
-const starTexture = textureLoader.load('textures/fourpointstar.png', undefined, undefined, (err) => {console.log(err)})
-const panoTexture = textureLoader.load('textures/space.jpeg', undefined, undefined, (err) => {console.log(err)})
+const emberTexture = textureLoader.load('textures/ember.png', undefined, undefined, (err) => {console.log(err)})
+const panoTexture = textureLoader.load('textures/city.jpeg', undefined, undefined, (err) => {console.log(err)})
 
 
 // ===========================================================
@@ -31,13 +31,28 @@ const scene = new THREE.Scene()
 // STATIC OBJECTS
 // ===========================================================
 
-const starsGeometry = new THREE.BufferGeometry
-const starCount = 2000
-const positionArray = new Float32Array(starCount * 3) //xyz per star
-for (var i = 0; i < starCount * 3; i++) {
-    positionArray[i] = (Math.random() - 0.5) * 4
+const embersGeometry = new THREE.BufferGeometry
+const emberCount = 2000
+const positionArray = new Float32Array(emberCount * 3) //xyz per star
+const positionArrayOriginal = new Float32Array(emberCount * 3)
+const velocityArray = new Float32Array(emberCount * 3)
+for (var i = 0; i < emberCount; i++) {
+    positionArray[i * 3] = (Math.random() - 0.5) * 4 + (window.innerWidth / 400)
+    positionArray[i * 3 + 1] = (Math.random() - 0.5) * 4 - (window.innerHeight / 200)
+    positionArray[i * 3 + 2] = (Math.random() - 0.5) * 3
+
+    positionArrayOriginal[i * 3] = positionArray[i * 3]
+    positionArrayOriginal[i * 3 + 1] = positionArray[i * 3 + 1]
+    positionArrayOriginal[i * 3 + 2] = positionArray[i * 3 + 2]
+
+    velocityArray[i * 3] = -1 * (Math.random() * 0.004 + 0.006)
+    velocityArray[i * 3 + 1] = (Math.random()) * 0.01 + 0.005
+    velocityArray[i * 3 + 2] = (Math.random()) * 0.01
 }
-starsGeometry.setAttribute('position', new THREE.BufferAttribute(positionArray, 3))
+
+console.log(positionArray)
+embersGeometry.setAttribute('position', new THREE.BufferAttribute(positionArray, 3).setUsage( THREE.DynamicDrawUsage ))
+embersGeometry.setAttribute('velocity', new THREE.BufferAttribute(velocityArray, 3))
 
 const panoGeometry = new THREE.SphereBufferGeometry(10, 64, 64)
 
@@ -49,9 +64,9 @@ const transitionGeometry = new THREE.PlaneGeometry(window.innerWidth /50, window
 // MATERIALS
 // ===========================================================
 
-const starsMaterial = new THREE.PointsMaterial({
-    size: 0.015,
-    map: starTexture,
+const embersMaterial = new THREE.PointsMaterial({
+    size: 0.02,
+    map: emberTexture,
     transparent: true
 })
 
@@ -71,9 +86,10 @@ const transitionMaterial = new THREE.MeshBasicMaterial( {
 // STATIC MESH
 // ===========================================================
 
-const stars = new THREE.Points(starsGeometry,starsMaterial)
-stars.position.z = 2
-scene.add(stars)
+const embers = new THREE.Points(embersGeometry,embersMaterial)
+console.log(embers)
+// embers.position.z = 2
+scene.add(embers)
 
 const pano = new THREE.Mesh(panoGeometry, panoMaterial)
 pano.position.set(0, 0, 2)
@@ -134,13 +150,18 @@ fbxLoader.load(
 // ===========================================================
 // Lights
 // ===========================================================
-const hemisphereLight = new THREE.HemisphereLight(0xffffff, 0xbbbbff, 1);
+const hemisphereLight = new THREE.HemisphereLight(0xffffff, 0xff9900, 1);
 hemisphereLight.position.set(2, 1, 0)
 hemisphereLight.intensity = 0.8;
 scene.add(hemisphereLight)
 
 const directionalLight = new THREE.DirectionalLight(0xd7cc99, 2)
 directionalLight.position.set(4.2, 1.5, 1.6)
+directionalLight.intensity = 2.9
+scene.add(directionalLight)
+
+const pointLight = new THREE.PointLight(0xff9900, 2)
+directionalLight.position.set(2, -2, 1.6)
 directionalLight.intensity = 2.9
 scene.add(directionalLight)
 
@@ -206,8 +227,8 @@ var expectedPos = {
 }
 
 var realPos = {
-    x: stars.position.x,
-    y: stars.position.y
+    x: embers.position.x,
+    y: embers.position.y
 }
 
 addEventListener('mousemove', (e) => {
@@ -224,6 +245,9 @@ var panoInit = false
 var panoRotate = 0
 
 const clock = new THREE.Clock()
+
+console.log(camera.getFilmWidth() / camera.getFilmHeight())
+console.log(sizes.width / sizes.height)
 
 const tick = () => {
 
@@ -293,10 +317,28 @@ const tick = () => {
         bounceX += .035
     }
 
-    stars.position.x =  realPos.x
-    stars.position.y = realPos.y
-    stars.rotation.y = rotateStars
-    rotateStars += 0.0005
+    for (var i = 0; i < emberCount; i++){
+      positionArray[i * 3] += velocityArray[i * 3]
+
+      // console.log(positionArray[i*3])
+      // if (positionArray[i * 3] < -1 * window.innerWidth / 200) positionArray[i * 3] = positionArrayOriginal[i * 3]
+      positionArray[i * 3 + 1] += velocityArray[i * 3 + 1]
+
+      positionArray[i * 3 + 2] += velocityArray[i * 3 + 2]
+      if (positionArray[i * 3] < (-1 * camera.fov / camera.getFilmWidth()) ||
+          positionArray[i * 3 + 1] > ( camera.fov / camera.getFilmHeight()) ||
+          positionArray[i * 3 + 2] > (camera.fov / camera.getFilmWidth() + 2)) {
+            positionArray[i * 3] = positionArrayOriginal[i * 3]
+            positionArray[i * 3 + 1] = positionArrayOriginal[i * 3 + 1]
+            positionArray[i * 3 + 2] = positionArrayOriginal[i * 3 + 2]
+          }
+    }
+    embers.geometry.attributes.position.needsUpdate = true;
+    // console.log(stars)
+    // stars.position.x =  realPos.x
+    // stars.position.y = realPos.y
+    // stars.rotation.y = rotateStars
+    // rotateStars += 0.0005
 
 
     // --------------------------------------
