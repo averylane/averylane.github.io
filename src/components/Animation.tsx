@@ -3,6 +3,8 @@ import useElementOnScreen from '../helpers/useElementOnScreen'
 
 export const Animation = (props) => {
 
+  const aspectRatioGif = 672/460
+
   const [containerRef, isVisible] = useElementOnScreen({
     root: null,
     rootMargin: "0px",
@@ -14,9 +16,9 @@ export const Animation = (props) => {
   }, [isVisible])
 
   return (
-    <section className="twoD-threeD" ref={containerRef}>
+    <section className="twoD-threeD" ref={containerRef} style={{'position': 'relative'}}>
       <div className="content">
-        <h1>Some ideas needs simple dimensions</h1>
+          <h1>Some ideas needs simple dimensions</h1>
       </div>
     </section>
   )

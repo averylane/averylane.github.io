@@ -1,10 +1,12 @@
 import * as THREE from "three";
 import { FBXLoader } from 'three/examples/jsm/loaders/FBXLoader'
+import { TGALoader } from 'three/examples/jsm/loaders/TGALoader'
 import gsap from 'gsap'
 
 import React from "react"
 import ReactDOM from "react-dom";
 import {App} from "./components/App"
+import { Vector2 } from "three";
 
 window.onbeforeunload = function () {
   window.scrollTo(0, 0);
@@ -18,7 +20,7 @@ ReactDOM.render(<App />, document.getElementById("app"))
 // ===========================================================
 const textureLoader = new THREE.TextureLoader()
 const emberTexture = textureLoader.load('textures/ember.png', undefined, undefined, (err) => {console.log(err)})
-const panoTexture = textureLoader.load('textures/city.jpeg', undefined, undefined, (err) => {console.log(err)})
+const panoTexture = textureLoader.load('textures/NY+FireEscape.preview.jpg', undefined, undefined, (err) => {console.log(err)})
 
 
 // ===========================================================
@@ -50,14 +52,12 @@ for (var i = 0; i < emberCount; i++) {
     velocityArray[i * 3 + 2] = (Math.random()) * 0.01
 }
 
-console.log(positionArray)
 embersGeometry.setAttribute('position', new THREE.BufferAttribute(positionArray, 3).setUsage( THREE.DynamicDrawUsage ))
 embersGeometry.setAttribute('velocity', new THREE.BufferAttribute(velocityArray, 3))
 
 const panoGeometry = new THREE.SphereBufferGeometry(10, 64, 64)
 
-// const geometry = new THREE.PlaneGeometry( 2*window.innerWidth, 2*window.innerHeight )
-const transitionGeometry = new THREE.PlaneGeometry(window.innerWidth /50, window.innerHeight / 50 )
+const transitionGeometry = new THREE.PlaneGeometry(50, window.innerHeight / 50 )
 
 
 // ===========================================================
@@ -78,7 +78,6 @@ const panoMaterial = new THREE.MeshStandardMaterial({
 
 const transitionMaterial = new THREE.MeshBasicMaterial( {
   color: 0x000000,
-  // side: THREE.DoubleSide
 })
 
 
@@ -87,12 +86,12 @@ const transitionMaterial = new THREE.MeshBasicMaterial( {
 // ===========================================================
 
 const embers = new THREE.Points(embersGeometry,embersMaterial)
-console.log(embers)
-// embers.position.z = 2
+embers.position.z = 1
 scene.add(embers)
 
 const pano = new THREE.Mesh(panoGeometry, panoMaterial)
 pano.position.set(0, 0, 2)
+pano.rotation.y = 2
 
 const transitionPlane = new THREE.Mesh( transitionGeometry, transitionMaterial )
 transitionPlane.position.z = -2
@@ -104,39 +103,62 @@ transitionPlane.rotation.z = 0.5
 // ===========================================================
 
 let mixer: THREE.AnimationMixer
+let mixer2: THREE.AnimationMixer
 const animationActions: THREE.AnimationAction[] = []
 let activeAction: THREE.AnimationAction
 let lastAction: THREE.AnimationAction
-var mutant: THREE.Object3D
-var mutantOffset = -0.9
+var model: THREE.Object3D
+var model1: THREE.Object3D
+var model2: THREE.Object3D
+var modelOffset = -0.2
 
 let modelReady = false
 
 // LOAD FBX FILE WITH EMBEDDED TEXTURES AND ANIMATIONS
 const fbxLoader = new FBXLoader()
-fbxLoader.load(
-    'models/mutant@idle.fbx',
-    (object) => {
-        mutant = object
-        mutant.scale.set(0.012, 0.012, 0.012)
-        // console.dir(mutant)
-        mutant.position.set(0, mutantOffset, 3)
-        mutant.rotation.y = 0.5
-        mixer = new THREE.AnimationMixer(mutant)
+const tgaLoader = new TGALoader()
 
-        const animationAction = mixer.clipAction(
-            (mutant as THREE.Object3D).animations[0]
-        )
+const texture = textureLoader.load('textures/dragon_map.jpg')
+const normalTexture = textureLoader.load('textures/dragon_normal.jpg')
+const emissiveTexture = textureLoader.load('textures/dragon_emissive.jpg')
+const otherTexture = textureLoader.load('textures/dragon_occlusion_roughness_metallic.jpg')
+fbxLoader.load(
+    'models/dragon.fbx',
+    // 'models/mutant@idle.fbx',
+    (object) => {
+        model1 = object
+        model = model1
+        model.traverse( function ( child ) {
+            if ( child.isMesh ) {
+                child.material.map = texture; // assign your diffuse texture here
+                child.material.normalMap = normalTexture
+                child.material.emissiveMap = emissiveTexture
+                child.material.metalnessMap = otherTexture
+
+                if (child.type = "SkinnedMesh") {
+                    modelReady = true
+                }
+            }
+
+        } );
+        model.scale.set(0.002, 0.002, 0.002)
+        model.position.set(0, -5, 0)
+        realPos.x = 0
+        realPos.y = modelOffset
+        model.rotation.x = 1.5 * Math.PI
+        // model.scale.set(0.01, 0.01, 0.01)
+        // model.position.set(0, -4, 0)
+        // console.log(model)
+        mixer = new THREE.AnimationMixer(model)
+
+        const animationAction = mixer.clipAction((model).animations[0])
         animationActions.push(animationAction)
         activeAction = animationActions[0]
 
-        scene.add(mutant)
+        scene.add(model)
 
         activeAction.play()
-
-        gsap.to(mutant.position, {z: 0, duration: 2})
-
-        modelReady = true
+        gsap.to(model.position, {y: modelOffset, duration: 2, onComplete: () => {heroInit = true}})
     },
     (xhr) => {
         console.log((xhr.loaded / xhr.total) * 100 + '% loaded')
@@ -146,24 +168,65 @@ fbxLoader.load(
     }
 )
 
+// add an animation from another file
+// fbxLoader.load('models/dragon_FlyStationarySpreadFire.fbx',
+//     (object) => {
+
+
+//         model2 = object
+//         model2.traverse( function ( child ) {
+//             if ( child.isMesh ) {
+//                 child.material.map = texture; // assign your diffuse texture here
+//                 child.material.normalMap = normalTexture
+//                 child.material.emissiveMap = emissiveTexture
+//                 child.material.metalnessMap = otherTexture
+
+//                 child.material.normalScale = new Vector2(2, 2)
+
+//                 if (child.type = "SkinnedMesh") {
+//                     modelReady = true
+//                 }
+//             }
+
+//         } );
+//         model2.scale.set(0.002, 0.002, 0.002)
+//         model2.position.set(0, modelOffset, 0)
+//         model2.rotation.x = 1.5 * Math.PI
+//         mixer2 = new THREE.AnimationMixer(model2)
+
+//         const animationAction = mixer2.clipAction((model2).animations[0])
+//         animationActions.push(animationAction)
+//         var activeAction2 = animationAction
+
+//         scene.add(model2)
+
+//         activeAction2.play()
+//     },
+//     (xhr) => {
+//         console.log((xhr.loaded / xhr.total * 100) + '% loaded')
+//     },
+//     (error) => {
+//         console.log(error)
+//     }
+// )
 
 // ===========================================================
 // Lights
 // ===========================================================
 const hemisphereLight = new THREE.HemisphereLight(0xffffff, 0xff9900, 1);
 hemisphereLight.position.set(2, 1, 0)
-hemisphereLight.intensity = 0.8;
+hemisphereLight.intensity = 0.5;
 scene.add(hemisphereLight)
 
 const directionalLight = new THREE.DirectionalLight(0xd7cc99, 2)
 directionalLight.position.set(4.2, 1.5, 1.6)
-directionalLight.intensity = 2.9
+directionalLight.intensity = 0.5
 scene.add(directionalLight)
 
 const pointLight = new THREE.PointLight(0xff9900, 2)
-directionalLight.position.set(2, -2, 1.6)
-directionalLight.intensity = 2.9
-scene.add(directionalLight)
+pointLight.position.set(2, -2, 1.6)
+pointLight.intensity = 1
+scene.add(pointLight)
 
 
 // ===========================================================
@@ -203,18 +266,21 @@ scene.add(camera)
 
 
 // ===========================================================
-//Renderer
+// Renderer
 // ===========================================================
-const renderer = new THREE.WebGLRenderer()
-renderer.setSize( window.innerWidth, window.innerHeight );
+const renderer = new THREE.WebGLRenderer({ alpha: true })
+renderer.setSize( window.innerWidth, window.innerHeight )
 renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2))
-// renderer.sortObjects = false
-document.body.appendChild( renderer.domElement );
+document.body.appendChild( renderer.domElement )
 
 
 // ===========================================================
-//Animate
+// Animate
 // ===========================================================
+
+// --------------------------------------
+// MOUSEMOVE
+// --------------------------------------
 
 var mouse = {
     x: innerWidth/2,
@@ -222,63 +288,198 @@ var mouse = {
 }
 
 var expectedPos = {
-    x: -0.0002 * (mouse.x - innerWidth/2),
-    y: 0.0002 * (mouse.y - innerHeight/2)
+    x: 0,
+    y: 0
 }
 
 var realPos = {
-    x: embers.position.x,
-    y: embers.position.y
+    x: 0,
+    y: 0
 }
 
 addEventListener('mousemove', (e) => {
     mouse.x = e.x
     mouse.y = e.y
-    expectedPos.x = -0.0002 * (mouse.x - innerWidth/2)
-    expectedPos.y = 0.0002 * (mouse.y - innerHeight/2)
+    expectedPos.x = -0.0003 * (mouse.x - innerWidth/2)
+    expectedPos.y = 0.0003 * (mouse.y - innerHeight/2)
 })
 
-var bounceX = 0;
-var rotateStars = 0
 
+// --------------------------------------
+// LIGHT FLICKER
+// --------------------------------------
+
+var flickerSpeeds = []
+
+for (var i = 0; i < 1000; i++) {
+    flickerSpeeds.push((Math.random() * 0.5) + 0.2)
+}
+
+var flickerIndex = 0
+var previousFlickerIndex = -1
+
+// --------------------------------------
+// SECTION FLAGS
+// --------------------------------------
+var heroInit = false
+var twoDInit = false
 var panoInit = false
 var panoRotate = 0
 
 const clock = new THREE.Clock()
 
-console.log(camera.getFilmWidth() / camera.getFilmHeight())
-console.log(sizes.width / sizes.height)
 
+// --------------------------------------
+// FUNCTION
+// --------------------------------------
 const tick = () => {
+
+
 
     // ================================================================
     // PRE RENDER CHANGES
     // ================================================================
 
-    // --------------------------------------
-    // 360 SECTION
-    // --------------------------------------
+    if (modelReady) {
 
-    // ENTER 360
-    if (window.current === '360d' && panoInit === false) {
-        panoInit = true
-        scene.add(transitionPlane)
+        // --------------------------------------
+        // HERO
+        // --------------------------------------
 
-        gsap.to(null, {duration: 0.25, onComplete: ()=>{
-            scene.add(pano)
-            gsap.to(transitionPlane.position, {y: window.innerHeight/25, duration: 1,})
-        }})
-    // EXIT 360
-    } else if (window.current !== '360d' && panoInit === true) {
-        panoInit = false
+        // AT HERO (AFTER ENTER)
+        if (window.current === 'hero' && heroInit) {
+            if (model.position.x !== realPos.x) {
+                model.position.x = realPos.x
+            }
 
-        gsap.to(transitionPlane.position, {y: 0, duration: 0.5, onComplete: ()=>{
-            scene.remove(pano)
-            scene.remove(transitionPlane)
-        }})
-        gsap.to(camera.rotation, {x: 0, y: 0, z: 0, duration: 0.5})
+            if (model.position.y !== realPos.y + modelOffset) {
+                model.position.y = realPos.y + modelOffset
+            }
+
+            if (model.position.z !== 0) {
+                model.position.z = 0
+            }
+
+            if (model.rotation.z !== 0) {
+                model.rotation.z = 0
+            }
+
+            if (model.scale.x !== 0.002 || model.scale.y !== 0.002 || model.scale.z !== 0.002) {
+                model.scale.set(0.002, 0.002, 0.002)
+            }
+        }
+
+        // EXIT HERO
+        if (window.current !== 'hero' && heroInit) {
+            heroInit = false
+        }
+
+        // --------------------------------------
+        // 2D SECTION
+        // --------------------------------------
+
+        // ENTER 2D FIGHT
+        if (window.current === 'anim' && twoDInit === false) {
+            twoDInit = true
+
+
+            gsap.to(null, {duration: 0.2, onComplete: () => {
+                if (window.current === 'anim') {
+
+                    // BRING 2D FIGHTER INTO VIEW
+                    gsap.to("#twoDFighter", {opacity: 1, transform: 'scale(1)', duration: 0.3})
+
+                    // GET 3D MODEL INTO FIGHTING POSITION
+                    var duration = 1
+                    gsap.to(model.position, { x: 2, y: modelOffset - 0.5, z: 0.5, duration})
+                    gsap.to(model.rotation, { z: Math.PI * -0.5, duration})
+                    gsap.to(model.scale, {x: 0.004, y: 0.004, z: 0.004, duration})
+                }
+            }})
+
+        // EXIT 2D FIGHT
+        } else if (window.current !== 'anim' && twoDInit === true){
+
+            // REMOVE 2D FIGHTER FROM VIEW
+            gsap.to("#twoDFighter", {opacity: 0, duration: 0.5, onComplete: () => {
+                gsap.to("#twoDFighter", {transform: 'scale(5)', duration: 0.01})
+            }})
+
+            // GET 3D MODEL BACK INTO IDLE POSITION
+            if (window.current === 'hero'){
+                gsap.to(model.position, { x: realPos.x, y: realPos.y + modelOffset, z: 0, onComplete: () => {
+                    twoDInit = false
+                    heroInit = true
+                }})
+            } else {
+                gsap.to(model.position, { x: 0, y: modelOffset, z: 0, onComplete: () => {
+                    twoDInit = false
+                }})
+            }
+            gsap.to(model.rotation, { z: 0})
+            gsap.to(model.scale, {x: 0.002, y: 0.002, z: 0.002 })
+        }
+
+
+        // --------------------------------------
+        // 360 SECTION
+        // --------------------------------------
+
+        // ENTER 360
+        if (window.current === '360d' && panoInit === false) {
+            // panoInit = true
+
+            // BLACK TRANSITION PLANE TO BRING 360 IMAGE INTO VIEW
+            scene.add(transitionPlane)
+
+            // TRANSITION AFTER 0.5 SECONDS
+            gsap.to(null, {duration: 0.5, onComplete: ()=>{
+                if (window.current === '360d') {
+                    panoInit = true
+                    scene.add(pano)
+                    gsap.to(transitionPlane.position, {y: window.innerHeight/25, duration: 1,})
+                } else if (window.current === 'anim') {
+                    scene.remove(transitionPlane)
+                }
+            }})
+
+        // EXIT 360
+        } else if (window.current !== '360d' && panoInit === true) {
+            panoInit = false
+
+            // TRANSITION BACK TO NORMAL
+            gsap.to(transitionPlane.position, {y: 0, duration: 0.5, onComplete: ()=>{
+                scene.remove(pano)
+                scene.remove(transitionPlane)
+            }})
+
+            // RESET CAMERA
+            gsap.to(camera.rotation, {x: 0, y: 0, z: 0, duration: 0.5})
+        }
+
+        // AT HERO (AFTER ENTER)
+        if (window.current === '360d' && panoInit) {
+            if (model.position.x !== 0) {
+                model.position.x = 0
+            }
+
+            if (model.position.y !== modelOffset) {
+                model.position.y = modelOffset
+            }
+
+            if (model.position.z !== 0) {
+                model.position.z = 0
+            }
+
+            if (model.rotation.z !== 0) {
+                model.rotation.z = 0
+            }
+
+            if (model.scale.x !== 0.002 || model.scale.y !== 0.002 || model.scale.z !== 0.002) {
+                model.scale.set(0.002, 0.002, 0.002)
+            }
+        }
     }
-
 
     // ================================================================
     // RENDER
@@ -286,71 +487,104 @@ const tick = () => {
 
     renderer.render(scene, camera)
     window.requestAnimationFrame(tick)
-    if (modelReady) mixer.update(clock.getDelta())
+    if (modelReady) {
+        mixer.update(clock.getDelta())
+        // mixer2.update(clock.getDelta())
+    }
 
 
     // ================================================================
     // POST RENDER CHANGES
     // ================================================================
 
-    // --------------------------------------
-    // MOUSE MOVE ANIMATION
-    // --------------------------------------
+    if (modelReady) {
 
-    // DISTANCE FOR MODEL TO TRAVEL FROM CURRENT TO EXPECTED
-    var distanceX = (realPos.x - expectedPos.x)
-    var distanceY = (realPos.y - expectedPos.y)
-    var distance = Math.sqrt(distanceX ** 2 + distanceY ** 2)
+        // --------------------------------------
+        // MOUSE MOVE ANIMATION
+        // --------------------------------------
 
-    // SLOWLY MOVE MODEL TO EXPECTED
-    if ( distance > 0.001) {
-        var angle = Math.atan2(distanceY, distanceX)
-        realPos.x -= distance ** 2 * Math.cos(angle)
-        realPos.y -= distance ** 2 * Math.sin(angle)
-    }
+        // DISTANCE FOR MODEL TO TRAVEL FROM CURRENT TO EXPECTED
+        if (true) {
+            var distanceX = (realPos.x - expectedPos.x)
+            var distanceY = (realPos.y - expectedPos.y)
+            var distance = Math.sqrt(distanceX ** 2 + distanceY ** 2)
 
-    // SET MODELS TO UPDATED POSITIONS
-    // BOUNCE MODEL OVER TIME
-    if (mutant) {
-        mutant.position.x = realPos.x
-        mutant.position.y = realPos.y + 0.05 * Math.sin(bounceX) + mutantOffset
-        bounceX += .035
-    }
+            // SLOWLY MOVE MODEL TO EXPECTED
+            if ( distance > 0.001) {
+                var angle = Math.atan2(distanceY, distanceX)
+                realPos.x -= distance ** 2 * Math.cos(angle)
+                realPos.y -= distance ** 2 * Math.sin(angle)
+            }
 
-    for (var i = 0; i < emberCount; i++){
-      positionArray[i * 3] += velocityArray[i * 3]
+            // SET MODELS TO UPDATED POSITIONS
+            if (model && !twoDInit && !panoInit) {
+                model.position.x = realPos.x
+                model.position.y = realPos.y + modelOffset
+            }
 
-      // console.log(positionArray[i*3])
-      // if (positionArray[i * 3] < -1 * window.innerWidth / 200) positionArray[i * 3] = positionArrayOriginal[i * 3]
-      positionArray[i * 3 + 1] += velocityArray[i * 3 + 1]
+        }
 
-      positionArray[i * 3 + 2] += velocityArray[i * 3 + 2]
-      if (positionArray[i * 3] < (-1 * camera.fov / camera.getFilmWidth()) ||
-          positionArray[i * 3 + 1] > ( camera.fov / camera.getFilmHeight()) ||
-          positionArray[i * 3 + 2] > (camera.fov / camera.getFilmWidth() + 2)) {
-            positionArray[i * 3] = positionArrayOriginal[i * 3]
-            positionArray[i * 3 + 1] = positionArrayOriginal[i * 3 + 1]
-            positionArray[i * 3 + 2] = positionArrayOriginal[i * 3 + 2]
-          }
-    }
-    embers.geometry.attributes.position.needsUpdate = true;
-    // console.log(stars)
-    // stars.position.x =  realPos.x
-    // stars.position.y = realPos.y
-    // stars.rotation.y = rotateStars
-    // rotateStars += 0.0005
+        // --------------------------------------
+        // LIGHT FLICKER
+        // --------------------------------------
 
+        if (flickerIndex !== previousFlickerIndex) {
+            previousFlickerIndex = flickerIndex
+            gsap.to(pointLight, {intensity: (flickerIndex % 2 === 0 ? Math.random() * 0.5 + 0.5 : Math.random() * 0.5), duration: flickerSpeeds[flickerIndex], onComplete: () => {
+                flickerIndex++
+                if (flickerIndex === 1000) flickerIndex = 0
+            }})
+        }
 
-    // --------------------------------------
-    // 360 SECTION
-    // --------------------------------------
+        // --------------------------------------
+        // EMBER PARTICLES
+        // --------------------------------------
 
-    if (window.current === '360d') {
-        panoRotate += 0.001
-        panoRotate = panoRotate % (2 * Math.PI)
-        camera.rotation.y = -1 * panoRotate
-    } else {
-        panoRotate = 0
+        for (var i = 0; i < emberCount; i++){
+
+            // MOVE EMBERS
+            positionArray[i * 3] += velocityArray[i * 3]
+            positionArray[i * 3 + 1] += velocityArray[i * 3 + 1]
+            positionArray[i * 3 + 2] += velocityArray[i * 3 + 2]
+
+            // IF EMBERS GO OUT OF BOUNDS
+            if (positionArray[i * 3] < (-1 * camera.fov / camera.getFilmWidth())
+                || positionArray[i * 3 + 1] > ( camera.fov / camera.getFilmHeight())
+            ) {
+                // RESET TO ORIGINAL POINT
+                positionArray[i * 3] = positionArrayOriginal[i * 3]
+                positionArray[i * 3 + 1] = positionArrayOriginal[i * 3 + 1]
+                positionArray[i * 3 + 2] = positionArrayOriginal[i * 3 + 2]
+                }
+        }
+        embers.geometry.attributes.position.needsUpdate = true;
+
+        // --------------------------------------
+        // 360 SECTION
+        // --------------------------------------
+
+        if (window.current === '360d' && panoInit) {
+            panoRotate += 0.003
+            panoRotate = panoRotate % (2 * Math.PI)
+            camera.rotation.y = -1 * panoRotate
+        } else {
+            panoRotate = 0
+        }
     }
 }
 tick()
+
+const setAction = (toAction) => {
+    // console.dir(toAction)
+    if (toAction != activeAction) {
+        // console.log('dif')
+        lastAction = activeAction
+        activeAction = toAction
+        lastAction.stop()
+        lastAction.fadeOut(1)
+        activeAction.reset()
+        activeAction.fadeIn(1)
+        activeAction.play()
+        // model.scale.set(0.002, 0.002, 0.002)
+    }
+}

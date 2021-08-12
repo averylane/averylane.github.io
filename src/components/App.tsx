@@ -24,7 +24,7 @@ export const App = (props) => {
       <Animation updateCurrent={updateCurrent} threshold={threshold}/>
       <ThreeSixty updateCurrent={updateCurrent} threshold={threshold}/>
       <Filtering updateCurrent={updateCurrent} threshold={threshold}/>
-      <AugReality updateCurrent={updateCurrent} threshold={threshold}/>
+      {/* <AugReality updateCurrent={updateCurrent} threshold={threshold}/> */}
       <A11y updateCurrent={updateCurrent} threshold={threshold}/>
       <Closing updateCurrent={updateCurrent} threshold={threshold}/>
     </>
