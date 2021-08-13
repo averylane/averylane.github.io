@@ -19,8 +19,11 @@ ReactDOM.render(<App />, document.getElementById("app"))
 // TEXTURES
 // ===========================================================
 const textureLoader = new THREE.TextureLoader()
-const emberTexture = textureLoader.load('textures/ember.png', undefined, undefined, (err) => {console.log(err)})
-const panoTexture = textureLoader.load('textures/NY+FireEscape.preview.jpg', undefined, undefined, (err) => {console.log(err)})
+const emberTexture = textureLoader.load('assets/textures/ember.png', undefined, undefined, (err) => {console.log(err)})
+const panoTexture = textureLoader.load('assets/textures/NY+FireEscape.preview.jpg', undefined, undefined, (err) => {console.log(err)})
+const filterTexture_disguise = textureLoader.load('assets/images/filter_disguise.png', undefined, undefined, (err) => {console.log(err)})
+const filterTexture_eyes = textureLoader.load('assets/images/filter_eyes.png', undefined, undefined, (err) => {console.log(err)})
+const filterTexture_funglasses = textureLoader.load('assets/images/filter_funglasses.png', undefined, undefined, (err) => {console.log(err)})
 
 
 // ===========================================================
@@ -59,6 +62,8 @@ const panoGeometry = new THREE.SphereBufferGeometry(10, 64, 64)
 
 const transitionGeometry = new THREE.PlaneGeometry(50, window.innerHeight / 50 )
 
+const filterGeometry = new THREE.PlaneGeometry(0.25, 0.25)
+
 
 // ===========================================================
 // MATERIALS
@@ -77,7 +82,13 @@ const panoMaterial = new THREE.MeshStandardMaterial({
 })
 
 const transitionMaterial = new THREE.MeshBasicMaterial( {
-  color: 0x000000,
+    color: 0x000000,
+})
+
+const filterMaterial = new THREE.MeshBasicMaterial({
+    map: filterTexture_disguise,
+    transparent: true
+    // color: 0xffff00
 })
 
 
@@ -93,9 +104,17 @@ const pano = new THREE.Mesh(panoGeometry, panoMaterial)
 pano.position.set(0, 0, 2)
 pano.rotation.y = 2
 
-const transitionPlane = new THREE.Mesh( transitionGeometry, transitionMaterial )
+const transitionPlane = new THREE.Mesh(transitionGeometry, transitionMaterial)
 transitionPlane.position.z = -2
 transitionPlane.rotation.z = 0.5
+
+const filter = new THREE.Mesh(filterGeometry, filterMaterial)
+const filterPos = 0.08
+filter.position.x = 0.02
+filter.position.z = 1.5
+filter.position.y = filterPos
+filter.rotation.z = -0.15
+// scene.add(filter)
 
 
 // ===========================================================
@@ -118,12 +137,12 @@ let modelReady = false
 const fbxLoader = new FBXLoader()
 const tgaLoader = new TGALoader()
 
-const texture = textureLoader.load('textures/dragon_map.jpg')
-const normalTexture = textureLoader.load('textures/dragon_normal.jpg')
-const emissiveTexture = textureLoader.load('textures/dragon_emissive.jpg')
-const otherTexture = textureLoader.load('textures/dragon_occlusion_roughness_metallic.jpg')
+const texture = textureLoader.load('assets/textures/dragon_map.jpg')
+const normalTexture = textureLoader.load('assets/textures/dragon_normal.jpg')
+const emissiveTexture = textureLoader.load('assets/textures/dragon_emissive.jpg')
+const otherTexture = textureLoader.load('assets/textures/dragon_occlusion_roughness_metallic.jpg')
 fbxLoader.load(
-    'models/dragon.fbx',
+    'assets/models/dragon.fbx',
     // 'models/mutant@idle.fbx',
     (object) => {
         model1 = object
@@ -325,6 +344,11 @@ var heroInit = false
 var twoDInit = false
 var panoInit = false
 var panoRotate = 0
+var filtInit = false
+var modelFilterPos = -0.6
+var filtX = 0
+var filtBounce = false
+var wait = {}
 
 const clock = new THREE.Clock()
 
@@ -333,8 +357,6 @@ const clock = new THREE.Clock()
 // FUNCTION
 // --------------------------------------
 const tick = () => {
-
-
 
     // ================================================================
     // PRE RENDER CHANGES
@@ -383,7 +405,7 @@ const tick = () => {
             twoDInit = true
 
 
-            gsap.to(null, {duration: 0.2, onComplete: () => {
+            gsap.to(wait, {duration: 0.2, onComplete: () => {
                 if (window.current === 'anim') {
 
                     // BRING 2D FIGHTER INTO VIEW
@@ -430,10 +452,10 @@ const tick = () => {
             // panoInit = true
 
             // BLACK TRANSITION PLANE TO BRING 360 IMAGE INTO VIEW
-            scene.add(transitionPlane)
 
             // TRANSITION AFTER 0.5 SECONDS
-            gsap.to(null, {duration: 0.5, onComplete: ()=>{
+            gsap.to(wait, {duration: 0.5, onComplete: ()=>{
+                scene.add(transitionPlane)
                 if (window.current === '360d') {
                     panoInit = true
                     scene.add(pano)
@@ -479,6 +501,51 @@ const tick = () => {
                 model.scale.set(0.002, 0.002, 0.002)
             }
         }
+
+        // --------------------------------------
+        // FILTERING
+        // --------------------------------------
+
+        // ENTER FILTERING
+        if (window.current === 'filt' && filtInit === false) {
+            filtInit = true
+
+            gsap.to(wait, {duration: 0.2, onComplete: () => {
+                if (window.current === 'filt') {
+
+                    var duration = 1
+                    activeAction.fadeOut(duration)
+
+                    // GET 3D MODEL INTO FIGHTING POSITION
+                    gsap.to(model.position, { x: 0, y: modelFilterPos, duration})
+                    gsap.to(model.rotation, { x: 1.5 * Math.PI + 0.2, y: 0.15, z: -0.1, duration})
+                    gsap.to(model.scale, {x: 0.003, y: 0.003, z: 0.003, duration, onComplete: () => {
+                        if (window.current === 'filt') {
+
+                            scene.add(filter)
+                            filtBounce = true
+                        }
+                    }})
+                }
+            }})
+
+        // EXIT FILTERING
+        } else if (window.current !== 'filt' && filtInit === true) {
+
+            scene.remove(filter)
+            filtBounce = false
+            filtInit = false
+            var duration = 1
+            activeAction.reset()
+            activeAction.fadeIn(0.5)
+            activeAction.play()
+
+            gsap.to(model.position, { x: realPos.x, y: realPos.y + modelOffset, duration})
+            gsap.to(model.rotation, { x: 1.5 * Math.PI, y: 0, z: 0, duration})
+            gsap.to(model.scale, {x: 0.002, y: 0.002, z: 0.002, duration, onComplete: () => {
+                // filtInit = false
+            }})
+        }
     }
 
     // ================================================================
@@ -517,7 +584,7 @@ const tick = () => {
             }
 
             // SET MODELS TO UPDATED POSITIONS
-            if (model && !twoDInit && !panoInit) {
+            if (model && !twoDInit && !panoInit && !filtInit) {
                 model.position.x = realPos.x
                 model.position.y = realPos.y + modelOffset
             }
@@ -569,6 +636,24 @@ const tick = () => {
             camera.rotation.y = -1 * panoRotate
         } else {
             panoRotate = 0
+        }
+
+        // --------------------------------------
+        // FILTERING
+        // --------------------------------------
+
+        if (window.current === 'filt' && filtBounce) {
+            model.position.y = 0.05 * Math.sin(filtX) + modelFilterPos
+            filter.position.y = 0.05 * Math.sin(filtX) + filterPos
+            filtX += 0.05
+            if (window.currentFilter === 'eyes') {
+                filter.material.map = filterTexture_eyes
+            } else if (window.currentFilter === 'funglasses'){
+                filter.material.map = filterTexture_funglasses
+            } else {
+                filter.material.map = filterTexture_disguise
+            }
+            filter.material.map.needsUpdate = true
         }
     }
 }

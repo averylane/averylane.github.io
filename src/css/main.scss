@@ -35,6 +35,27 @@ body {
       }
     }
 
+    .filtering {
+      .content {
+        .filterBtn {
+          background: rgba(0, 0, 0, 0.5);
+          color: white;
+          padding: 15px 20px;
+          margin: 3px;
+          border: solid 2px white;
+          border-radius: 7px;
+        }
+        .filterBtn:hover {
+          background: rgba(116, 116, 116, 0.5);
+          cursor: pointer;
+        }
+        .selected {
+          background: rgba(116, 116, 116, 0.5);
+        }
+
+      }
+    }
+
     // LAST SECTION
     .closing {
       height: calc(50vh + 140px/2);

@@ -18,7 +18,7 @@ export const Animation = (props) => {
   return (
     <section className="twoD-threeD" ref={containerRef} style={{'position': 'relative'}}>
       <div className="content">
-          <h1>Some ideas needs simple dimensions</h1>
+          <h1 tabIndex="0">Some ideas needs simple dimensions</h1>
       </div>
     </section>
   )

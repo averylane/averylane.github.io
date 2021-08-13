@@ -16,7 +16,7 @@ export const Hero = (props) => {
   return (
     <section className="hero" ref={containerRef}>
       <div className="content">
-        <h1>Big ideas need big mediums</h1>
+        <h1 tabIndex="0">Big ideas need big mediums</h1>
       </div>
     </section>
   )

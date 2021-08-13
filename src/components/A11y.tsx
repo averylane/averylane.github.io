@@ -16,7 +16,8 @@ export const A11y = (props) => {
   return (
     <section className="a11y" ref={containerRef}>
       <div className="content" >
-        <h1>All Ideas Should Be Inclusive</h1>
+        <h1 tabIndex="0">All Ideas Should Be Inclusive</h1>
+        <p>Try clicking tab or turning on your screen reader</p>
       </div>
     </section>
   )

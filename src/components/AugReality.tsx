@@ -16,7 +16,7 @@ export const AugReality = (props) => {
   return (
     <section className="ar" ref={containerRef}>
       <div className="content">
-        <h1>Some Ideas Needs Reality.</h1>
+        <h1 tabIndex="0">Some Ideas Needs Reality.</h1>
       </div>
     </section>
   )

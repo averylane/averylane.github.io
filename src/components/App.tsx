@@ -21,6 +21,7 @@ export const App = (props) => {
   return (
     <>
       <Hero updateCurrent={updateCurrent} threshold={threshold}/>
+      {/** */}
       <Animation updateCurrent={updateCurrent} threshold={threshold}/>
       <ThreeSixty updateCurrent={updateCurrent} threshold={threshold}/>
       <Filtering updateCurrent={updateCurrent} threshold={threshold}/>

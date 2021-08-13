@@ -16,7 +16,7 @@ export const ThreeSixty = (props) => {
   return (
     <section className="three-sixty" ref={containerRef}>
       <div className="content">
-        <h1>Some ideas need 360 degrees of dimension</h1>
+        <h1 tabIndex="0">Some ideas need 360 degrees of dimension</h1>
       </div>
     </section>
   )
